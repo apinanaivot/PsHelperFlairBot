@@ -64,18 +64,23 @@ def update_flair(user, new_points, old_flair):
     subreddit.flair.set(user, updated_flair)
 
 def check_comments():
+    print("Loading processed comments.")
     processed_comments = load_processed_comments()
     bot_username = REDDIT_USERNAME.lower()
-    for post in subreddit.hot(limit=400):
-        if post.link_flair_text in ("Help!", "Solved"):
-            for comment in post.comments:
+    print("Iterating over new posts. (this can take a while)")
+    for post in subreddit.new(limit=250):
+        if post.link_flair_text in ("Solved"):
+            all_comments = flatten_comments(post.comments.list())  # Get all comments in the thread
+            
+            for comment in all_comments:
                 if isinstance(comment, Message) or comment.id in processed_comments:
                     continue
 
-                all_replies = flatten_comments(comment.replies)
+                all_replies = flatten_comments(comment.replies)  # Check all replies of each comment
 
                 for reply in all_replies:
                     if reply.author == post.author and "solved!" in reply.body.lower():
+                        print(f"Awarding helper point for comment {comment.id}.")
                         helper = comment.author
 
                         # Skip if the helper is the original poster or in the blacklist
