@@ -69,7 +69,7 @@ def check_comments():
     bot_username = REDDIT_USERNAME.lower()
     print("Iterating over new posts. (this can take a while)")
     for post in subreddit.new(limit=250):
-        if post.link_flair_text in ("Solved"):
+        if post.link_flair_text is not None and post.link_flair_text in ("Solved"):
             all_comments = flatten_comments(post.comments.list())  # Get all comments in the thread
             
             for comment in all_comments:
@@ -97,10 +97,23 @@ def check_comments():
                         processed_comments.add(reply.id)
                         save_processed_comments(processed_comments)
 
+def log_error(error_message):
+    with open('error_log.txt', 'a') as log_file:
+        log_file.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {error_message}\n")
+
+
 if __name__ == "__main__":
     while True:
-        check_comments()
-        wait_time = 900  # Wait for 15 minutes before checking again
-        print(f"Finished checking comments. Waiting for {wait_time // 60} minutes before checking again.")
-        time.sleep(wait_time)
+        try:
+            print(f"Starting up a check.")
+            check_comments()
+            wait_time = 900  # Wait for 15 minutes before checking again
+            print(f"Finished checking comments. Waiting for {wait_time // 60} minutes before checking again.")
+            time.sleep(wait_time)
+        except Exception as e:
+            error_message = f"An error occurred: {e}"
+            print(error_message)
+            log_error(error_message)
+            # Optional: Add a short wait time to prevent the script from entering an error loop.
+            time.sleep(60)
         
