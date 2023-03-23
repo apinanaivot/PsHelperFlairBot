@@ -56,11 +56,21 @@ def get_helper_points(flair_text):
             return int(part.strip().split(" ")[0])
     return 0
 
+def remove_helper_points(flair_text):
+    if flair_text is None:
+        return ''
+
+    parts = flair_text.split("|")
+    remaining_flair_parts = [part for part in parts if "helper points" not in part]
+    return "|".join(remaining_flair_parts).strip()
+
 def update_flair(user, new_points, old_flair):
+    old_flair_without_helper_points = remove_helper_points(old_flair)
     updated_flair = f"{new_points} helper points"
-    if old_flair:
-        if "helper points" not in old_flair:
-            updated_flair += f" | {old_flair}"
+
+    if old_flair_without_helper_points:
+        updated_flair += f" | {old_flair_without_helper_points}"
+    
     subreddit.flair.set(user, updated_flair)
 
 def check_comments():
